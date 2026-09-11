@@ -51,13 +51,15 @@ npm run dev
 
 ### Optional hosted AI provider
 
-The default configuration runs with the offline embedder. To enable the optional hosted provider, install the provider package in the backend environment and set:
+The default configuration runs with the offline embedder. To enable the hosted embedding and answer provider, copy `.env.example` to `.env`, add your key locally, and start the API normally:
 
 ```bash
-OPENAI_API_KEY=your-key
+cp .env.example .env
+# Edit .env and set OPENAI_API_KEY locally
+PYTHONPATH=backend python -m uvicorn app.main:app --env-file .env --host 0.0.0.0 --port 8000
 ```
 
-The key should be supplied through the runtime environment and should not be committed to the repository.
+The backend loads `.env` automatically. The key is never committed; `.env` is ignored by Git. Without a key, CivicBridge safely uses the deterministic offline embedding and extractive answer paths.
 
 ## API surface
 
