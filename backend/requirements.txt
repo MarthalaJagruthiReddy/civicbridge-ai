@@ -5,4 +5,4 @@ pydantic>=2.8,<3
 prometheus-client>=0.21,<1
 python-dotenv>=1.0,<2
 pymongo>=4.10,<5
-# Optional production provider: pip install openai and set OPENAI_API_KEY.
+openai>=1.0,<2
