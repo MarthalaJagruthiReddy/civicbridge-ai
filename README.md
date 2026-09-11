@@ -87,6 +87,19 @@ MONGO_DATABASE=civicbridge_test \
 pytest -q backend/tests/test_mongo_integration.py
 ```
 
+## Reproducible load measurement
+
+The [GitHub Actions benchmark run](https://github.com/MarthalaJagruthiReddy/civicbridge-ai/actions/runs/34620845148) sent 300 grounded Q&A requests with 20 concurrent clients against a real MongoDB 8 service and the offline extractive model:
+
+| Metric | Result |
+| --- | ---: |
+| Successful requests | 300 / 300 |
+| Throughput | 639.33 requests/sec |
+| Latency p50 / p95 / p99 | 30.14 / 35.30 / 37.88 ms |
+| Errors | 0 |
+
+These are measurements from that CI runner and workload, not production capacity guarantees. Re-run the benchmark workflow before comparing code changes.
+
 ## Repository layout
 
 ```text
@@ -100,4 +113,4 @@ docker-compose.yml MongoDB and API services
 
 - Move the vector search path to MongoDB Atlas Vector Search for larger indexes.
 - Expand the reviewed evaluation set and add regression cases for stale resources.
-- Add role-based document administration and document versioning.
+- Add role-based document administration, document versioning, and larger retrieval benchmarks.
