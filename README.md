@@ -75,9 +75,17 @@ The key should be supplied through the runtime environment and should not be com
 ```bash
 pytest -q backend/tests
 npm run build
+npm run typecheck
 ```
 
-The backend tests exercise document ingestion, redaction, retrieval, citations, and abstention behavior. The GitHub Actions workflow runs the backend tests and frontend build.
+The backend tests exercise document ingestion, redaction, retrieval, citations, and abstention behavior. The GitHub Actions workflow also runs a MongoDB round-trip integration test. With MongoDB running locally, execute it with:
+
+```bash
+MONGO_INTEGRATION=1 \
+MONGO_URI=mongodb://localhost:27017 \
+MONGO_DATABASE=civicbridge_test \
+pytest -q backend/tests/test_mongo_integration.py
+```
 
 ## Repository layout
 
