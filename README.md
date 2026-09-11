@@ -59,7 +59,7 @@ cp .env.example .env
 PYTHONPATH=backend python -m uvicorn app.main:app --env-file .env --host 0.0.0.0 --port 8000
 ```
 
-The backend loads `.env` automatically. The key is never committed; `.env` is ignored by Git. Without a key, CivicBridge safely uses the deterministic offline embedding and extractive answer paths.
+The local Uvicorn command loads `.env` explicitly, and Docker Compose passes the values into the API container. The key is never committed; `.env` is ignored by Git. Without a key, CivicBridge safely uses the deterministic offline embedding and extractive answer paths.
 
 ## API surface
 
