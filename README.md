@@ -1,37 +1,95 @@
 # CivicBridge AI
 
-CivicBridge AI turns messy community-resource updates into a safer, searchable knowledge base. It redacts obvious contact data before indexing, stores the document/chunk index in MongoDB, retrieves relevant passages, cites the source, and abstains when confidence is too low.
+CivicBridge AI turns community-resource updates into a searchable, evidence-backed knowledge base. It redacts obvious contact data before indexing, retrieves relevant passages, returns source citations, and abstains when the available evidence is not strong enough.
 
-## AI design
+## What the system does
 
-- `HashingEmbedder` is an offline deterministic baseline so the project can run without a paid API.
-- MongoDB stores source documents and chunk embeddings; Atlas Vector Search can replace the small offline cosine loop at deployment time.
-- If `OPENAI_API_KEY` and the optional `openai` package are present, the same interface uses hosted embeddings and a grounded chat model.
-- The answer prompt receives only retrieved context; citations are returned separately so the UI can expose provenance.
-- The evaluation endpoint measures retrieval recall, citation coverage, and abstention rate over a small golden set.
+```mermaid
+flowchart TD
+    Source["Resource update"] --> Redact["PII redaction and chunking"]
+    Redact --> Index["MongoDB knowledge index"]
+    Question["User question"] --> Retrieve["Grounded retrieval"]
+    Index --> Retrieve
+    Retrieve --> Answer["Cited answer or abstention"]
+```
 
-This makes the AI claim testable: a recruiter can inspect the retrieval boundary, the fallback, the evaluator, the PII-redaction step, and the MongoDB persistence path. SQLite remains a local fallback for unit tests.
+The answer layer receives retrieved context instead of the entire document collection. Citations and confidence signals are returned separately so the frontend can display provenance and explain when the system cannot answer safely.
 
-## Run
+## AI and data design
+
+- `HashingEmbedder` provides a deterministic offline baseline with no paid API dependency.
+- MongoDB stores source documents and chunk embeddings when `MONGO_URI` is configured.
+- SQLite is used as a local SQL fallback for development and tests.
+- An optional hosted provider can be enabled with the `openai` package and `OPENAI_API_KEY`.
+- The evaluation endpoint measures retrieval recall, citation coverage, and abstention behavior.
+- The redaction stage removes common email and phone-number patterns before indexing.
+
+## Technology
+
+- Frontend: React, TypeScript, Vite
+- API: Python, FastAPI, Pydantic, SQLAlchemy
+- AI pipeline: retrieval, deterministic embeddings, optional hosted model integration
+- Storage: MongoDB with SQLite fallback
+- Operations: Docker Compose, GitHub Actions, Prometheus metrics
+
+## Getting started
+
+### Start the services
 
 ```bash
 npm install
 docker compose up --build
 ```
 
-Open `http://localhost:8002/docs`. Run the frontend with:
+The API is available at `http://localhost:8002`. FastAPI documentation is available at `http://localhost:8002/docs`, and metrics are exposed at `http://localhost:8002/metrics`.
+
+### Start the frontend
 
 ```bash
 npm run dev
 ```
 
-## Interview discussion
+### Optional hosted AI provider
 
-1. Why is retrieval confidence not the same thing as answer correctness?
-2. What would change when moving from JSON embeddings to Postgres + pgvector?
-3. How would you evaluate hallucinations and stale resource availability?
-4. What privacy threats remain after regex redaction, and how would you improve the detector?
+The default configuration runs with the offline embedder. To enable the optional hosted provider, install the provider package in the backend environment and set:
 
-## Honest evaluation plan
+```bash
+OPENAI_API_KEY=your-key
+```
 
-Expand `EVAL_CASES` with 50 reviewed questions, compare the offline baseline with the hosted model, and record recall@k, citation precision, grounded-answer rate, abstention rate, p95 latency, and cost per question. Only measured results belong in a resume bullet.
+The key should be supplied through the runtime environment and should not be committed to the repository.
+
+## API surface
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/v1/documents` | Redact, chunk, and index a resource document |
+| `GET` | `/api/v1/documents` | List indexed documents and chunk counts |
+| `POST` | `/api/v1/ask` | Retrieve evidence and return a cited answer or abstention |
+| `POST` | `/api/v1/evals/run` | Run the configured evaluation cases |
+| `GET` | `/healthz` | Check SQL and MongoDB storage state |
+| `GET` | `/metrics` | Export Prometheus metrics |
+
+## Validation
+
+```bash
+pytest -q backend/tests
+npm run build
+```
+
+The backend tests exercise document ingestion, redaction, retrieval, citations, and abstention behavior. The GitHub Actions workflow runs the backend tests and frontend build.
+
+## Repository layout
+
+```text
+backend/app/ai/    Retrieval, redaction, storage, service, and evaluation logic
+backend/app/       FastAPI routes, persistence models, and metrics
+frontend/          React knowledge-base interface
+docker-compose.yml MongoDB and API services
+```
+
+## Next steps
+
+- Move the vector search path to MongoDB Atlas Vector Search for larger indexes.
+- Expand the reviewed evaluation set and add regression cases for stale resources.
+- Add role-based document administration and document versioning.
