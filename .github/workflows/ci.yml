@@ -44,6 +44,7 @@ jobs:
       MONGO_URI: mongodb://localhost:27017
       MONGO_DATABASE: civicbridge_test
       MONGO_INTEGRATION: "1"
+      PYTHONPATH: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
