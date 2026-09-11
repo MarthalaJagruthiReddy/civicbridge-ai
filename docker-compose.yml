@@ -1,0 +1,22 @@
+services:
+  mongo:
+    image: mongo:8
+    volumes:
+      - civicbridge-mongo:/data/db
+
+  api:
+    build: ./backend
+    ports:
+      - "8002:8000"
+    environment:
+      DATABASE_URL: sqlite:///./civicbridge.db
+      MONGO_URI: mongodb://mongo:27017
+      # Add OPENAI_API_KEY and install openai to enable hosted embeddings/answers.
+    volumes:
+      - civicbridge-data:/app
+    depends_on:
+      - mongo
+
+volumes:
+  civicbridge-data:
+  civicbridge-mongo:
